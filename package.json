@@ -11,8 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@elastic/elasticsearch": "^7.17.14",
-    "@opensearch-project/opensearch": "^3.5.1",
+    "@elastic/elasticsearch": "^8.11.0",
     "cors": "^2.8.5",
     "csv-parse": "^6.1.0",
     "dotenv": "^17.2.1",

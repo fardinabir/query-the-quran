@@ -7,7 +7,7 @@ async function bulkIndexVerses(verses) {
         verse
     ]);
 
-    const { body: bulkResponse } = await client.bulk({ refresh: true, body: operations });
+    const bulkResponse = await client.bulk({ refresh: true, operations });
 
     if (bulkResponse.errors) {
         const erroredDocuments = [];
@@ -31,8 +31,8 @@ async function bulkIndexVerses(verses) {
 
 // Get cluster health
 async function getClusterHealth() {
-    const { body } = await client.cluster.health();
-    return body;
+    const health = await client.cluster.health();
+    return health;
 }
 
 module.exports = {

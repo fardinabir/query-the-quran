@@ -1,12 +1,12 @@
-const { Client } = require('@opensearch-project/opensearch');
+const { Client } = require('@elastic/elasticsearch');
 require('dotenv').config();
 
 const client = new Client({
     node: process.env.ELASTICSEARCH_NODE,
     ssl: { rejectUnauthorized: false },
     auth: {
-        username: 'admin',
-        password: 'admin'
+        username: 'elastic',
+        password: 'admin123'
     }
 });
 
@@ -55,16 +55,16 @@ const versesMapping = {
     }
 };
 
-// Initialize OpenSearch index
+// Initialize Elasticsearch index
 async function initializeIndex() {
     try {
         // Check if index exists
-        const { body: indexExists } = await client.indices.exists({
+        const indexExists = await client.indices.exists({
             index: process.env.ELASTICSEARCH_INDEX
         });
 
         if (!indexExists) {
-            const { body: createResponse } = await client.indices.create({
+            const createResponse = await client.indices.create({
                 index: process.env.ELASTICSEARCH_INDEX,
                 body: versesMapping
             });
@@ -74,12 +74,12 @@ async function initializeIndex() {
         }
 
         // Get cluster health after index operations
-        const { body: health } = await client.cluster.health();
-        console.log('OpenSearch cluster health:', health);
+        const health = await client.cluster.health();
+        console.log('Elasticsearch cluster health:', health);
     } catch (error) {
-        console.error('Error initializing OpenSearch:', error.message);
-        if (error.body) {
-            console.error('OpenSearch error details:', error.body);
+        console.error('Error initializing Elasticsearch:', error.message);
+        if (error.meta && error.meta.body) {
+            console.error('Elasticsearch error details:', error.meta.body);
         }
         throw error;
     }

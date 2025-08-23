@@ -12,13 +12,7 @@ const client = new Client({
     },
     tls: {
         rejectUnauthorized: false
-    },
-    headers: {
-        'Accept': 'application/vnd.elasticsearch+json;compatible-with=8',
-        'Content-Type': 'application/vnd.elasticsearch+json;compatible-with=8'
-    },
-    // Enable debug logging
-    log: 'trace'
+    }
 });
 
 // Mapping for Quran verses with appropriate analyzers
@@ -119,21 +113,18 @@ const versesMapping = {
     }
 };
 
-// Initialize OpenSearch index
+// Initialize Elasticsearch index
 async function initializeIndex() {
     try {
         // Check if index exists
-        const { body: indexExists } = await client.indices.exists({
+        const indexExists = await client.indices.exists({
             index: process.env.ELASTICSEARCH_INDEX
         });
 
         if (!indexExists) {
-            const { body: createResponse } = await client.indices.create({
+            const createResponse = await client.indices.create({
                 index: process.env.ELASTICSEARCH_INDEX,
-                body: {
-                    settings: versesMapping.settings,
-                    mappings: versesMapping.mappings
-                }
+                body: versesMapping
             });
             console.log('Index created successfully:', createResponse);
         } else {
@@ -141,12 +132,12 @@ async function initializeIndex() {
         }
 
         // Get cluster health after index operations
-        const { body: health } = await client.cluster.health();
-        console.log('OpenSearch cluster health:', health);
+        const health = await client.cluster.health();
+        console.log('Elasticsearch cluster health:', health);
     } catch (error) {
-        console.error('Error initializing OpenSearch:', error.message);
+        console.error('Error initializing Elasticsearch:', error.message);
         if (error.meta && error.meta.body) {
-            console.error('OpenSearch error details:', JSON.stringify(error.meta.body, null, 2));
+            console.error('Elasticsearch error details:', JSON.stringify(error.meta.body, null, 2));
         }
         throw error;
     }
