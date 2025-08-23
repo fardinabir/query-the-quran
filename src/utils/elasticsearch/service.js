@@ -82,36 +82,7 @@ async function searchVerses(query, from = 0, size = 10) {
     }
 }
 
-// Get search suggestions
-async function getSuggestions(prefix, field = 'ayat_text_english') {
-    try {
-        const { body } = await client.search({
-            index: process.env.ELASTICSEARCH_INDEX,
-            body: {
-                size: 5,
-                _source: [field],
-                suggest: {
-                    text: prefix,
-                    verse_suggestions: {
-                        completion: {
-                            field: `${field}.completion`,
-                            size: 5,
-                            skip_duplicates: true,
-                            fuzzy: {
-                                fuzziness: 'AUTO'
-                            }
-                        }
-                    }
-                }
-            }
-        });
 
-        return body.suggest.verse_suggestions[0].options;
-    } catch (error) {
-        console.error('Error getting suggestions:', error);
-        throw error;
-    }
-}
 
 // Get cluster health
 async function getClusterHealth() {

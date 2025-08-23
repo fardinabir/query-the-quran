@@ -77,7 +77,6 @@
                        id="searchInput" 
                        class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
                        placeholder="Start typing to search verses...">
-                <div id="suggestions" class="absolute w-full bg-white mt-1 rounded-lg shadow-lg hidden"></div>
                 <div id="loadingSpinner" class="hidden absolute right-3 top-3">
                     <div class="loading-spinner w-6 h-6 border-4 border-gray-200 rounded-full"></div>
                 </div>
@@ -94,7 +93,7 @@
         const pageSize = 10;
         let debounceTimer;
         const searchInput = document.getElementById('searchInput');
-        const suggestionsDiv = document.getElementById('suggestions');
+
         const loadingSpinner = document.getElementById('loadingSpinner');
         const resultsDiv = document.getElementById('results');
         const paginationDiv = document.getElementById('pagination');
@@ -111,40 +110,11 @@
 
             loadingSpinner.classList.remove('hidden');
 
-            // Get suggestions
+            // Perform search
             debounceTimer = setTimeout(() => {
-                fetch(`/api/v1/verses/suggest?query=${encodeURIComponent(query)}`)
-                    .then(response => response.json())
-                    .then(suggestions => {
-                        displaySuggestions(suggestions);
-                    })
-                    .catch(console.error);
-
-                // Perform search
                 performSearch(query, 0);
             }, 300);
         });
-
-        function displaySuggestions(suggestions) {
-            if (!suggestions.length) {
-                suggestionsDiv.classList.add('hidden');
-                return;
-            }
-
-            suggestionsDiv.innerHTML = suggestions
-                .map(s => `<div class="p-2 hover:bg-gray-100 cursor-pointer">${s.text}</div>`)
-                .join('');
-
-            suggestionsDiv.classList.remove('hidden');
-
-            suggestionsDiv.querySelectorAll('div').forEach(div => {
-                div.addEventListener('click', () => {
-                    searchInput.value = div.textContent;
-                    suggestionsDiv.classList.add('hidden');
-                    performSearch(div.textContent, 0);
-                });
-            });
-        }
 
         function performSearch(query, from) {
             loadingSpinner.classList.remove('hidden');
@@ -231,12 +201,7 @@
                 .join('');
         }
 
-        // Close suggestions when clicking outside
-        document.addEventListener('click', function(e) {
-            if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) {
-                suggestionsDiv.classList.add('hidden');
-            }
-        });
+
     </script>
 </body>
 </html>

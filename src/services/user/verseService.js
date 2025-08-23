@@ -47,26 +47,6 @@ async function searchVerses(query, from = 0, size = 10) {
     };
 }
 
-// Get search suggestions
-async function getSuggestions(query, field) {
-    const result = await client.search({
-        index: process.env.ELASTICSEARCH_INDEX,
-        size: 5,
-        query: {
-            match_phrase_prefix: {
-                [field]: {
-                    query,
-                    max_expansions: 10
-                }
-            }
-        },
-        _source: [field]
-    });
-
-    return result.hits.hits.map(hit => ({ text: hit._source[field] }));
-}
-
 module.exports = {
-    searchVerses,
-    getSuggestions
+    searchVerses
 };
