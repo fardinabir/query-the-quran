@@ -92,11 +92,11 @@ node src/app.js
     - `field`: Field to get suggestions from (optional)
 
 ### Admin Endpoints
-- `POST /api/v1/verses/admin/upload` - Upload and index CSV data
+- `POST /api/v1/admin/upload` - Upload and index CSV data
   - Requires basic authentication
   - Accepts CSV file upload
 
-- `GET /api/v1/verses/admin/health` - Get Elasticsearch cluster health
+- `GET /api/v1/admin/health` - Get Elasticsearch cluster health
   - Requires basic authentication
 
 ## CSV Data Format

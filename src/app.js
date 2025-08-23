@@ -20,7 +20,7 @@ app.use(express.static('public/user'));
 
 // Admin routes and static files with authentication
 app.use('/admin', adminAuth, express.static('public/admin'));
-app.use('/api/v1/verses/admin', adminAuth, adminRoutes);
+app.use('/api/v1/admin', adminAuth, adminRoutes);
 
 // User routes
 app.use('/api/v1/verses', userRoutes);

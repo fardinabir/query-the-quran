@@ -56,7 +56,7 @@
         checkHealth();
 
         function checkHealth() {
-            fetch('/api/v1/verses/admin/health', {
+            fetch('/api/v1/admin/health', {
                 headers: {
                     'Authorization': `Basic ${auth}`
                 }
@@ -134,7 +134,7 @@
 
             uploadStatus.innerHTML = '<div class="text-blue-600">Uploading and indexing...</div>';
 
-            fetch('/api/v1/verses/admin/upload', {
+            fetch('/api/v1/admin/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Basic ${auth}`
@@ -165,7 +165,7 @@
             const formData = new FormData();
             formData.append('file', '/uploads/sample_verses.csv');
 
-            fetch('/api/v1/verses/admin/upload', {
+            fetch('/api/v1/admin/upload', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Basic ${auth}`
