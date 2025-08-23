@@ -1,10 +1,10 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const basicAuth = require('express-basic-auth');
-const multer = require('multer');
 const { initializeIndex } = require('./utils/elasticsearch/config');
-const verseRoutes = require('./routes/verseRoutes');
+const adminAuth = require('./middleware/auth');
+const adminRoutes = require('./routes/admin/verseRoutes');
+const userRoutes = require('./routes/user/verseRoutes');
 
 const app = express();
 
@@ -15,33 +15,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Configure multer for file uploads
-const upload = multer({
-    dest: 'uploads/',
-    fileFilter: (req, file, cb) => {
-        if (file.mimetype === 'text/csv') {
-            cb(null, true);
-        } else {
-            cb(new Error('Only CSV files are allowed'));
-        }
-    }
-});
-
 // Serve static files
 app.use(express.static('public/user'));
-app.use('/admin', express.static('public/admin'));
 
-// Basic auth middleware for admin routes
-const adminAuth = basicAuth({
-    users: { 'admin': 'admin123' },
-    challenge: true
-});
+// Admin routes and static files with authentication
+app.use('/admin', adminAuth, express.static('public/admin'));
+app.use('/api/v1/verses/admin', adminAuth, adminRoutes);
 
-// Apply basic auth to admin routes
-app.use('/api/v1/verses/admin', adminAuth);
-
-// API routes
-app.use('/api/v1/verses', verseRoutes);
+// User routes
+app.use('/api/v1/verses', userRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
