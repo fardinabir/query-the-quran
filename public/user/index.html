@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query The Quran</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .search-container {
+            backdrop-filter: blur(10px);
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+        .verse-card {
+            transition: transform 0.2s;
+        }
+        .verse-card:hover {
+            transform: translateY(-2px);
+        }
+        .loading-spinner {
+            border-top-color: #4F46E5;
+            animation: spinner 1s linear infinite;
+        }
+        @keyframes spinner {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .highlight {
+            background-color: rgba(79, 70, 229, 0.2);
+            padding: 0 2px;
+            border-radius: 2px;
+        }
+        .title-gradient {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold title-gradient tracking-tight mb-4">Query The Quran</h1>
+            <p class="text-gray-600 text-lg font-light">Search through verses in Arabic, English, or Bangla</p>
+        </div>
+
+        <div class="search-container max-w-2xl mx-auto rounded-lg shadow-lg p-6 mb-8">
+            <div class="relative">
+                <input type="text" 
+                       id="searchInput" 
+                       class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent" 
+                       placeholder="Start typing to search verses...">
+                <div id="suggestions" class="absolute w-full bg-white mt-1 rounded-lg shadow-lg hidden"></div>
+                <div id="loadingSpinner" class="hidden absolute right-3 top-3">
+                    <div class="loading-spinner w-6 h-6 border-4 border-gray-200 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="results" class="max-w-4xl mx-auto space-y-4"></div>
+
+        <div id="pagination" class="mt-8 flex justify-center space-x-2"></div>
+    </div>
+
+    <script>
+        let currentPage = 0;
+        const pageSize = 10;
+        let debounceTimer;
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsDiv = document.getElementById('suggestions');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsDiv = document.getElementById('results');
+        const paginationDiv = document.getElementById('pagination');
+
+        searchInput.addEventListener('input', function(e) {
+            const query = e.target.value.trim();
+            clearTimeout(debounceTimer);
+
+            if (query.length < 2) {
+                suggestionsDiv.classList.add('hidden');
+                resultsDiv.innerHTML = '';
+                return;
+            }
+
+            loadingSpinner.classList.remove('hidden');
+
+            // Get suggestions
+            debounceTimer = setTimeout(() => {
+                fetch(`/api/v1/verses/suggest?query=${encodeURIComponent(query)}`)
+                    .then(response => response.json())
+                    .then(suggestions => {
+                        displaySuggestions(suggestions);
+                    })
+                    .catch(console.error);
+
+                // Perform search
+                performSearch(query, 0);
+            }, 300);
+        });
+
+        function displaySuggestions(suggestions) {
+            if (!suggestions.length) {
+                suggestionsDiv.classList.add('hidden');
+                return;
+            }
+
+            suggestionsDiv.innerHTML = suggestions
+                .map(s => `<div class="p-2 hover:bg-gray-100 cursor-pointer">${s.text}</div>`)
+                .join('');
+
+            suggestionsDiv.classList.remove('hidden');
+
+            suggestionsDiv.querySelectorAll('div').forEach(div => {
+                div.addEventListener('click', () => {
+                    searchInput.value = div.textContent;
+                    suggestionsDiv.classList.add('hidden');
+                    performSearch(div.textContent, 0);
+                });
+            });
+        }
+
+        function performSearch(query, from) {
+            loadingSpinner.classList.remove('hidden');
+            currentPage = from / pageSize;
+
+            fetch(`/api/v1/verses/search?query=${encodeURIComponent(query)}&from=${from}&size=${pageSize}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayResults(data);
+                    updatePagination(data.total.value, query);
+                    loadingSpinner.classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error('Search error:', error);
+                    loadingSpinner.classList.add('hidden');
+                });
+        }
+
+        function displayResults(data) {
+            if (!data.hits || !data.hits.length) {
+                resultsDiv.innerHTML = '<div class="text-center text-gray-600">No results found</div>';
+                return;
+            }
+
+            resultsDiv.innerHTML = data.hits
+                .map(hit => {
+                    const highlight = hit.highlight || {};
+                    return `
+                        <div class="verse-card bg-white rounded-lg shadow p-6 hover:shadow-lg">
+                            <div class="flex justify-between items-start mb-4">
+                                <span class="text-sm text-gray-500">Surah ${hit._source.sura_no}, Verse ${hit._source.verse_no}</span>
+                                <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-1 rounded">#${hit._source.id}</span>
+                            </div>
+                            <div class="space-y-4">
+                                <p class="text-xl text-right font-arabic" dir="rtl">${highlight.ayat_text_arabic?.[0] || hit._source.ayat_text_arabic}</p>
+                                <p class="text-gray-800">${highlight.ayat_text_english?.[0] || hit._source.ayat_text_english}</p>
+                                <p class="text-gray-800">${highlight.ayat_text_bangla?.[0] || hit._source.ayat_text_bangla}</p>
+                            </div>
+                        </div>
+                    `;
+                })
+                .join('');
+        }
+
+        function updatePagination(total, query) {
+            const totalPages = Math.ceil(total / pageSize);
+            if (totalPages <= 1) {
+                paginationDiv.innerHTML = '';
+                return;
+            }
+
+            let pages = [];
+            const currentPageNum = currentPage + 1;
+
+            // Always show first page, last page, and pages around current page
+            pages.push(1);
+            for (let i = Math.max(2, currentPageNum - 2); i <= Math.min(totalPages - 1, currentPageNum + 2); i++) {
+                pages.push(i);
+            }
+            if (totalPages > 1) pages.push(totalPages);
+
+            // Remove duplicates and sort
+            pages = [...new Set(pages)].sort((a, b) => a - b);
+
+            paginationDiv.innerHTML = pages
+                .map((page, index) => {
+                    // Add ellipsis
+                    const ellipsis = pages[index + 1] - page > 1 ? '<span class="px-3">...</span>' : '';
+                    const isActive = page === currentPageNum;
+                    
+                    return `
+                        <button 
+                            class="${isActive ? 'bg-indigo-600 text-white' : 'bg-white text-gray-700'} px-4 py-2 rounded-lg shadow hover:shadow-md transition-all"
+                            onclick="performSearch('${query}', ${(page - 1) * pageSize})">
+                            ${page}
+                        </button>${ellipsis}
+                    `;
+                })
+                .join('');
+        }
+
+        // Close suggestions when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!suggestionsDiv.contains(e.target) && e.target !== searchInput) {
+                suggestionsDiv.classList.add('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

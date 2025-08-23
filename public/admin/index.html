@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query The Quran - Admin</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold text-center mb-8">Quran Verses Admin Panel</h1>
+
+        <!-- Health Status -->
+        <div class="mb-8 p-4 bg-white rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">OpenSearch Health Status</h2>
+            <div id="healthStatus" class="text-gray-600">Loading...</div>
+        </div>
+
+        <!-- Quick Index Section -->
+        <div class="mb-8 p-4 bg-white rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Quick Index</h2>
+            <button 
+                id="indexSampleButton" 
+                class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-50"
+                onclick="indexSampleData()">
+                Index Sample Data
+            </button>
+            <div id="indexStatus" class="mt-2 text-sm"></div>
+        </div>
+
+        <!-- File Upload Section -->
+        <div class="p-4 bg-white rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Upload CSV File</h2>
+            <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center" id="dropZone">
+                <div class="space-y-2">
+                    <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                        <path d="M24 8l12 12H28v16h-8V20H12L24 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <div class="text-gray-600">
+                        <label for="fileInput" class="cursor-pointer text-indigo-600 hover:text-indigo-500">Upload a file</label>
+                        <span class="text-gray-500"> or drag and drop</span>
+                    </div>
+                    <p class="text-xs text-gray-500">CSV files only</p>
+                </div>
+                <input id="fileInput" type="file" class="hidden" accept=".csv">
+            </div>
+            <div id="uploadStatus" class="mt-4 text-sm"></div>
+        </div>
+    </div>
+
+    <script>
+        // Authentication credentials
+        const auth = btoa('admin:admin123');
+
+        // Check health status on load
+        checkHealth();
+
+        function checkHealth() {
+            fetch('/api/v1/verses/admin/health', {
+                headers: {
+                    'Authorization': `Basic ${auth}`
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                const health = data.health;
+                const statusHtml = `
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div><span class="font-medium">Status:</span> <span class="${health.status === 'green' ? 'text-green-600' : 'text-yellow-600'}">${health.status}</span></div>
+                        <div><span class="font-medium">Nodes:</span> ${health.number_of_nodes}</div>
+                        <div><span class="font-medium">Active Shards:</span> ${health.active_shards}</div>
+                        <div><span class="font-medium">Relocating Shards:</span> ${health.relocating_shards}</div>
+                    </div>
+                `;
+                document.getElementById('healthStatus').innerHTML = statusHtml;
+            })
+            .catch(error => {
+                document.getElementById('healthStatus').innerHTML = `<div class="text-red-600">Error: ${error.message}</div>`;
+            });
+        }
+
+        // Handle file upload via drag and drop
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            dropZone.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            dropZone.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight(e) {
+            dropZone.classList.add('border-indigo-500');
+        }
+
+        function unhighlight(e) {
+            dropZone.classList.remove('border-indigo-500');
+        }
+
+        dropZone.addEventListener('drop', handleDrop, false);
+        fileInput.addEventListener('change', handleFileSelect, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const file = dt.files[0];
+            handleFile(file);
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            handleFile(file);
+        }
+
+        function handleFile(file) {
+            if (!file || file.type !== 'text/csv') {
+                uploadStatus.innerHTML = '<div class="text-red-600">Please upload a CSV file</div>';
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            uploadStatus.innerHTML = '<div class="text-blue-600">Uploading and indexing...</div>';
+
+            fetch('/api/v1/verses/admin/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${auth}`
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                uploadStatus.innerHTML = `<div class="text-green-600">Success! ${data.verses_count} verses indexed.</div>`;
+                checkHealth();
+            })
+            .catch(error => {
+                uploadStatus.innerHTML = `<div class="text-red-600">Error: ${error.message}</div>`;
+            });
+        }
+
+        // Function to index sample data
+        function indexSampleData() {
+            const indexStatus = document.getElementById('indexStatus');
+            const indexButton = document.getElementById('indexSampleButton');
+            
+            // Disable button during indexing
+            indexButton.disabled = true;
+            indexButton.classList.add('opacity-50');
+            indexStatus.innerHTML = '<div class="text-blue-600">Indexing sample data...</div>';
+
+            // Create a FormData object with the sample file path
+            const formData = new FormData();
+            formData.append('file', '/uploads/sample_verses.csv');
+
+            fetch('/api/v1/verses/admin/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Basic ${auth}`
+                },
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                indexStatus.innerHTML = `<div class="text-green-600">Success! ${data.verses_count} verses indexed.</div>`;
+                checkHealth();
+            })
+            .catch(error => {
+                indexStatus.innerHTML = `<div class="text-red-600">Error: ${error.message}</div>`;
+            })
+            .finally(() => {
+                // Re-enable button
+                indexButton.disabled = false;
+                indexButton.classList.remove('opacity-50');
+            });
+        }
+    </script>
+</body>
+</html>
