@@ -2,6 +2,28 @@ const client = require('../../utils/elasticsearch/config').client;
 
 // Bulk index verses
 async function bulkIndexVerses(verses) {
+    // Delete existing index first
+    try {
+        const indexExists = await client.indices.exists({
+            index: process.env.ELASTICSEARCH_INDEX
+        });
+
+        if (indexExists) {
+            await client.indices.delete({
+                index: process.env.ELASTICSEARCH_INDEX
+            });
+            console.log('Existing index deleted');
+        }
+
+        // Recreate index with mapping
+        const { initializeIndex } = require('../../utils/elasticsearch/config');
+        await initializeIndex();
+        console.log('Index recreated with mapping');
+    } catch (error) {
+        console.error('Error managing index:', error);
+        throw error;
+    }
+
     const operations = verses.flatMap(verse => [
         { index: { _index: process.env.ELASTICSEARCH_INDEX } },
         verse

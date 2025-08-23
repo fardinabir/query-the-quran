@@ -42,20 +42,20 @@ async function searchVerses(query, from = 0, size = 10) {
                     bool: {
                         should: [
                             {
-                                multi_match: {
-                                    query,
-                                    fields: ['ayat_text_arabic^3', 'ayat_text_english^2', 'ayat_text_bangla'],
-                                    type: 'best_fields',
-                                    fuzziness: 'AUTO'
-                                }
-                            },
-                            {
-                                multi_match: {
-                                    query,
+        multi_match: {
+            query,
+            fields: ['ayat_text_arabic^3', 'ayat_text_english^2', 'ayat_text_bangla'],
+            type: 'best_fields',
+            fuzziness: 'AUTO'
+        }
+    },
+    {
+        multi_match: {
+            query,
                                     fields: ['ayat_text_arabic.keyword^3', 'ayat_text_english.keyword^2', 'ayat_text_bangla.keyword'],
-                                    type: 'phrase'
-                                }
-                            }
+            type: 'phrase'
+        }
+    }
                         ]
                     }
                 },

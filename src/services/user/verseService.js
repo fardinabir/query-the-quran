@@ -12,7 +12,7 @@ async function searchVerses(query, from = 0, size = 10) {
                     {
                         multi_match: {
                             query,
-                            fields: ['ayat_text_arabic^3', 'ayat_text_english^2', 'ayat_text_bangla'],
+                            fields: ['ayat_text_arabic', 'ayat_text_english^3', 'ayat_text_bangla^2'],
                             type: 'best_fields',
                             fuzziness: 'AUTO'
                         }
@@ -20,7 +20,7 @@ async function searchVerses(query, from = 0, size = 10) {
                     {
                         multi_match: {
                             query,
-                            fields: ['ayat_text_arabic.keyword^3', 'ayat_text_english.keyword^2', 'ayat_text_bangla.keyword'],
+                            fields: ['ayat_text_arabic.keyword^2', 'ayat_text_english.keyword^6', 'ayat_text_bangla.keyword^4'],
                             type: 'phrase'
                         }
                     }
