@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const config = require('./config');
 const { initializeIndex } = require('./utils/elasticsearch/config');
 const adminAuth = require('./middleware/auth');
 const adminRoutes = require('./routes/admin/verseRoutes');
@@ -32,12 +33,10 @@ app.use((err, req, res, next) => {
 });
 
 // Initialize Elasticsearch index and start server
-const PORT = process.env.PORT || 3000;
-
 initializeIndex()
     .then(() => {
-        app.listen(PORT, () => {
-            console.log(`Server is running on port ${PORT}`);
+        app.listen(config.server.port, () => {
+            console.log(`Server is running on port ${config.server.port}`);
         });
     })
     .catch(error => {

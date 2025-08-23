@@ -1,8 +1,9 @@
 const basicAuth = require('express-basic-auth');
+const config = require('../config');
 
 // Basic auth middleware for admin routes
 const adminAuth = basicAuth({
-    users: { 'admin': process.env.ADMIN_PASSWORD || 'admin123' },
+    users: { [config.admin.username]: config.admin.password },
     challenge: true
 });
 

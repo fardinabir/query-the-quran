@@ -1,18 +1,10 @@
 const { Client } = require('@elastic/elasticsearch');
-require('dotenv').config();
-
-console.log('ELASTICSEARCH_NODE:', process.env.ELASTICSEARCH_NODE);
-console.log('ELASTICSEARCH_INDEX:', process.env.ELASTICSEARCH_INDEX);
+const config = require('../../config');
 
 const client = new Client({
-    node: process.env.ELASTICSEARCH_NODE,
-    auth: {
-        username: 'elastic',
-        password: 'admin123'
-    },
-    tls: {
-        rejectUnauthorized: false
-    }
+    node: config.elasticsearch.node,
+    auth: config.elasticsearch.auth,
+    tls: config.elasticsearch.tls
 });
 
 // Mapping for Quran verses with appropriate analyzers
@@ -118,12 +110,12 @@ async function initializeIndex() {
     try {
         // Check if index exists
         const indexExists = await client.indices.exists({
-            index: process.env.ELASTICSEARCH_INDEX
+            index: config.elasticsearch.index
         });
 
         if (!indexExists) {
             const createResponse = await client.indices.create({
-                index: process.env.ELASTICSEARCH_INDEX,
+                index: config.elasticsearch.index,
                 body: versesMapping
             });
             console.log('Index created successfully:', createResponse);

@@ -32,6 +32,9 @@ services:
     environment:
       - ELASTICSEARCH_NODE=http://elasticsearch:9200
       - ELASTICSEARCH_INDEX=quran_verses
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=admin123
+      - ELASTICSEARCH_REJECT_UNAUTHORIZED=false
       - PORT=3000
       - HOST=0.0.0.0
       - ADMIN_USERNAME=admin
