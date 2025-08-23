@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read The Quran</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .verse-card {
+            transition: transform 0.2s;
+        }
+        .verse-card:hover {
+            transform: translateY(-2px);
+        }
+        .title-gradient {
+            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-12">
+        <div class="text-center mb-12">
+            <h1 class="text-5xl font-extrabold title-gradient tracking-tight mb-4">Read The Quran</h1>
+            <p class="text-gray-600 text-lg font-light">Read verses in sequence</p>
+            <a href="/index.html" class="text-indigo-600 hover:text-indigo-800 text-sm">← Back to Search</a>
+        </div>
+
+        <div class="flex justify-center space-x-6 mt-12 mb-12">
+            <button id="prevButton" 
+                    class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg">
+                ← Previous
+            </button>
+            <button id="nextButton" 
+                    class="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:shadow-lg">
+                Next →
+            </button>
+        </div>
+
+        <div id="verses" class="max-w-4xl mx-auto space-y-6"></div>
+
+
+    </div>
+
+    <script>
+        let currentId = 1;
+
+        // Get verse ID from URL query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('id')) {
+            currentId = parseInt(urlParams.get('id'));
+            if (isNaN(currentId) || currentId < 1) currentId = 1;
+        }
+
+        const prevButton = document.getElementById('prevButton');
+        const nextButton = document.getElementById('nextButton');
+        const versesDiv = document.getElementById('verses');
+
+        let maxVerseId = 6236;
+
+        // Get total number of verses
+        fetch('/api/v1/verses/search?size=1&sort=id:desc')
+            .then(response => response.json())
+            .then(data => {
+                if (data.hits && data.hits.length > 0) {
+                    maxVerseId = data.hits[0]._source.id;
+                    updateNavigationButtons(); // Update buttons after setting maxVerseId
+                }
+            })
+            .catch(error => console.error('Error getting total verses:', error));
+
+        function updateNavigationButtons() {
+            prevButton.disabled = currentId <= 1;
+            nextButton.disabled = currentId >= maxVerseId;
+        }
+
+        function displayVerses(data) {
+            versesDiv.innerHTML = data.hits
+                .map(verse => `
+                    <div class="verse-card bg-white rounded-lg shadow p-6 hover:shadow-lg">
+                        <div class="flex justify-between items-start mb-4">
+                            <span class="text-sm text-gray-500">${verse.sura_no}:${verse.verse_no}</span>
+                            <span class="text-sm text-gray-500">#${verse.id}</span>
+                        </div>
+                        <div class="space-y-4">
+                            <p class="text-2xl text-right font-arabic" dir="rtl">${verse.ayat_text_arabic}</p>
+                            <p class="text-lg text-gray-800">${verse.ayat_text_english}</p>
+                            <p class="text-lg text-gray-800">${verse.ayat_text_bangla}</p>
+                        </div>
+                    </div>
+                `)
+                .join('');
+        }
+
+        function loadVerses() {
+            fetch(`/api/v1/verses/read?id=${currentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    displayVerses(data);
+                    updateNavigationButtons();
+                    // Update URL without reloading the page
+                    history.pushState({}, '', `?id=${currentId}`);
+                })
+                .catch(error => {
+                    console.error('Error loading verses:', error);
+                    versesDiv.innerHTML = '<div class="text-center text-red-600">Error loading verses</div>';
+                });
+        }
+
+        prevButton.addEventListener('click', () => {
+            if (currentId > 1) {
+                currentId--;
+                loadVerses();
+            }
+        });
+
+        nextButton.addEventListener('click', () => {
+            if (currentId < maxVerseId) {
+                currentId++;
+                loadVerses();
+            }
+        });
+
+        // Initial load
+        loadVerses();
+    </script>
+</body>
+</html>

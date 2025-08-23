@@ -54,7 +54,7 @@ const versesMapping = {
     },
     mappings: {
         properties: {
-            id: { type: 'keyword' },
+            id: { type: 'integer' },
             sura_no: { type: 'integer' },
             verse_no: { type: 'integer' },
             ayat_text_arabic: {

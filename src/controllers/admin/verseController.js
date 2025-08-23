@@ -12,7 +12,13 @@ async function uploadAndIndexCSV(req, res) {
         const records = [];
         fs.createReadStream(req.file.path)
             .pipe(parse({ columns: true, skip_empty_lines: true }))
-            .on('data', (record) => records.push(record))
+            .on('data', (record) => {
+                // Convert numeric fields to integers
+                record.id = parseInt(record.id, 10);
+                record.sura_no = parseInt(record.sura_no, 10);
+                record.verse_no = parseInt(record.verse_no, 10);
+                records.push(record);
+            })
             .on('end', async () => {
                 try {
                     await verseService.bulkIndexVerses(records);

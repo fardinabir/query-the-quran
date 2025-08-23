@@ -16,8 +16,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Serve static files
+// Serve static files from public/user directory
 app.use(express.static('public/user'));
+
+// Redirect root URL to index.html
+app.get('/', (req, res) => {
+    res.redirect('/user/index.html');
+});
 
 // Admin routes and static files with authentication
 app.use('/admin', adminAuth, express.static('public/admin'));
