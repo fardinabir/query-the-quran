@@ -27,8 +27,11 @@ services:
   app:
     build: .
     container_name: quran-app
-    ports:
-      - "3000:3000"
+    # Remove direct port exposure since we'll access through the proxy
+    # ports:
+    #   - "3000:3000"
+    expose:
+      - "3000"
     environment:
       - ELASTICSEARCH_NODE=http://elasticsearch:9200
       - ELASTICSEARCH_INDEX=quran_verses
@@ -49,9 +52,29 @@ services:
       elasticsearch:
         condition: service_healthy
     restart: unless-stopped
+    
+  nginx-proxy-manager:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: quran-proxy
+    restart: unless-stopped
+    ports:
+      - '80:80'      # HTTP
+      - '443:443'    # HTTPS
+      - '81:81'      # Admin UI
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+    networks:
+      - quran-network
+    depends_on:
+      - app
 
 volumes:
   elasticsearch_data:
+    driver: local
+  npm_data:
+    driver: local
+  npm_letsencrypt:
     driver: local
 
 networks:
