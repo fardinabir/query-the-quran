@@ -49,17 +49,12 @@
     </div>
 
     <script>
-        // Authentication credentials
-        const auth = btoa('admin:admin123');
-
         // Check health status on load
         checkHealth();
 
         function checkHealth() {
             fetch('/api/v1/admin/health', {
-                headers: {
-                    'Authorization': `Basic ${auth}`
-                }
+                // Using browser's built-in auth handling - no need to manually add credentials
             })
             .then(response => response.json())
             .then(data => {
@@ -136,9 +131,7 @@
 
             fetch('/api/v1/admin/upload', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${auth}`
-                },
+                // Using browser's built-in auth handling
                 body: formData
             })
             .then(response => response.json())
@@ -167,9 +160,7 @@
 
             fetch('/api/v1/admin/upload', {
                 method: 'POST',
-                headers: {
-                    'Authorization': `Basic ${auth}`
-                },
+                // Using browser's built-in auth handling
                 body: formData
             })
             .then(response => response.json())
