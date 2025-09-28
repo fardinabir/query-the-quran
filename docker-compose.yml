@@ -41,6 +41,8 @@ services:
       - ADMIN_PASSWORD=admin123
     volumes:
       - ./uploads:/app/uploads
+      - ./src:/app/src
+      - ./public:/app/public
     networks:
       - quran-network
     depends_on:
