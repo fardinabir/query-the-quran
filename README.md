@@ -1,126 +1,125 @@
 # Query The Quran
 
-A modern web application that allows users to search through Quranic verses in Arabic, English, and Bangla using Elasticsearch's powerful search capabilities.
+![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-green.svg)
 
-## Features
+A modern, high-performance web application that enables users to search and explore Quranic verses in multiple languages (Arabic, English, and Bangla) using Elasticsearch's powerful search capabilities. This application provides an intuitive interface for studying the Quran with advanced search features and multilingual support.
 
-- Real-time search-as-you-type functionality
-- Multi-language support (Arabic, English, Bangla)
-- Modern and responsive UI
-- Admin panel for data management
-- CSV data import functionality
-- Elasticsearch health monitoring
-- Secure admin access
+## ✨ Features
 
-## Prerequisites
+- **User Experience**
+  - Consecutive verse reading feature from any starting point
+  - Search results include Surah and Ayah references for every matched verse
+  - Each verse element contains Arabic, along with English, and Bangla translation
+  - Verses can be searched using Bangla, English, or Arabic words
 
-- Node.js (v18 or higher)
-- Elasticsearch (v8 or higher)
-- npm or yarn package manager
+- **Advanced Search Capabilities**
+  - Real-time search-as-you-type functionality
+  - Fuzzy matching for typo tolerance
+  - Relevance-based results ranking
+  - Multi-field search across verse text and translations
 
-## Setup
+- **Multilingual Support**
+  - Complete Arabic original text
+  - English translation
+  - Bangla (Bengali) translation
+  - Language-specific boosting for more relevant results
 
-1. Clone the repository:
+
+- **Infrastructure**
+  - Dockerized deployment with Docker Compose
+  - Nginx Proxy Manager for SSL termination and rate limiting
+  - Scalable architecture
+  - Built on top of Elasticsearch to demonstrate its full-text search capabilities
+
+## 🚀 Quick Start
+
+### Using Docker (Recommended)
+
+The easiest way to get started is using Docker Compose:
+
 ```bash
+# Clone the repository
 git clone <repository-url>
 cd query-the-quran
+
+# Start the application stack
+docker-compose up -d
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+Access the application:
+- User Interface: `http://localhost`
+- Admin Interface: `http://localhost/admin` (default credentials: admin/admin123)
+- Nginx Proxy Manager: `http://localhost:81` (default credentials: admin@example.com/changeme)
 
-3. Configure environment variables:
-Create a `.env` file in the root directory with the following content:
-```env
-# Elasticsearch Configuration
-ELASTICSEARCH_NODE=http://localhost:9200
-ELASTICSEARCH_INDEX=quran_verses
+## 🏗️ Architecture
 
-# Server Configuration
-PORT=3000
-HOST=localhost
-
-# Admin Configuration
-ADMIN_USERNAME=admin
-ADMIN_PASSWORD=admin123
-
-# Rate Limiting
-RATE_LIMIT_WINDOW_MS=60000
-RATE_LIMIT_MAX_REQUESTS=100
-```
-
-4. Start the server:
-```bash
-node src/app.js
-```
-
-5. Access the application:
-- User Interface: `http://localhost:3000`
-- Admin Interface: `http://localhost:3000/admin`
-
-## Project Structure
+The application follows a clean MVC-like architecture:
 
 ```
 ├── src/
-│   ├── config/          # Configuration files
+│   ├── config/          # Configuration management
 │   ├── controllers/     # Request handlers
-│   ├── routes/          # API routes
-│   ├── services/        # Business logic
-│   └── app.js           # Main application file
-├── public/
-│   ├── admin/          # Admin interface
-│   └── user/           # User interface
-├── uploads/            # Temporary upload directory
-├── .env                # Environment variables
-└── package.json        # Project dependencies
+│   │   ├── admin/       # Admin controllers
+│   │   └── user/        # User-facing controllers
+│   ├── middleware/      # Express middleware
+│   ├── routes/          # API route definitions
+│   │   ├── admin/       # Admin routes
+│   │   └── user/        # User routes
+│   ├── services/        # Business logic layer
+│   │   ├── admin/       # Admin services
+│   │   └── user/        # User services
+│   ├── utils/           # Utility functions
+│   │   └── elasticsearch/ # Elasticsearch configuration
+│   └── app.js           # Application entry point
+├── public/              # Static assets
+│   ├── admin/           # Admin interface
+│   └── user/            # User interface
+├── uploads/             # File upload directory
+├── docker-compose.yml   # Docker Compose configuration
+├── Dockerfile           # Docker build instructions
+└── package.json         # Project dependencies
 ```
 
-## API Endpoints
+## 🐳 Docker Configuration
 
-### Search Endpoints
-- `GET /api/v1/verses/search` - Search verses
-  - Query parameters:
-    - `query`: Search text
-    - `from`: Pagination offset (optional)
-    - `size`: Number of results per page (optional)
+The application includes a complete Docker setup:
 
-- `GET /api/v1/verses/suggest` - Get search suggestions
-  - Query parameters:
-    - `query`: Partial search text
-    - `field`: Field to get suggestions from (optional)
+- `Dockerfile` for containerizing the Node.js application
+- `docker-compose.yml` for orchestrating the application stack:
+  - Node.js application
+  - Elasticsearch database
+  - Nginx Proxy Manager for SSL and rate limiting
 
-### Admin Endpoints
-- `POST /api/v1/admin/upload` - Upload and index CSV data
-  - Requires basic authentication
-  - Accepts CSV file upload
+## Why Elasticsearch?
 
-- `GET /api/v1/admin/health` - Get Elasticsearch cluster health
-  - Requires basic authentication
+Inverted Index
+- Maps terms to documents and positions, enabling millisecond full‑text search at scale
+- Rich language analyzers (Arabic, English, Bangla) for tokenization, stemming, stopword handling, and normalization
+- Relevance scoring (BM25), phrase/proximity queries, and result highlighting
 
-## CSV Data Format
+Why PostgreSQL LIKE falls short
+- LIKE/ILIKE often degrade to sequential scans on large datasets (especially with leading wildcards)
+- No built‑in relevance ranking or field boosting; boolean matches only
+- Weak typo tolerance and limited fuzzy matching; multilingual search is cumbersome without extensions
+- Harder to scale horizontally for search workloads; PostgreSQL excels at transactions, Elasticsearch at search
+- Note: PostgreSQL FTS and pg_trgm exist, but for multilingual fuzzy search, analyzers, and large‑scale relevance, Elasticsearch is more suitable
 
-The application expects CSV files with the following columns:
-```
-id,sura_no,verse_no,ayat_text_arabic,ayat_text_english,ayat_text_bangla
-```
+Fuzziness in Elasticsearch
+- Set fuzziness to AUTO or explicit edit distance to tolerate typos
+- Tune prefix_length and max_expansions to balance performance and accuracy
+- Use n‑grams, synonyms, and phonetic analyzers to improve recall while preserving precision
 
-## Security
 
-- Admin endpoints are protected with basic authentication
-- Rate limiting is implemented to prevent abuse
-- Input validation and sanitization are in place
-- Secure Elasticsearch connection
+## 📚 Contributing
 
-## Contributing
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-## License
+## 📄 License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## 🙏 Acknowledgements
+
+The Quran text and translations are sourced from verified public domain sources
+
