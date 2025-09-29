@@ -19,6 +19,9 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from public/user directory
 app.use(express.static('public/user'));
 
+// Serve assets directory
+app.use('/assets', express.static('public/assets'));
+
 // Redirect root URL to index.html
 app.get('/', (req, res) => {
     res.redirect('/user/index.html');
