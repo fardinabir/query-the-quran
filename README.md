@@ -30,6 +30,14 @@ A modern, high-performance web application that enables users to search and expl
   - Scalable architecture
   - Built on top of Elasticsearch to demonstrate its full-text search capabilities
 
+
+## 🖼️ Application Preview
+
+<p align="center">
+  <img src="./public/assets/ui-sample/querypage.png" alt="User Interface" width="400" style="height:auto;" />
+  <img src="./public/assets/ui-sample/readpage.png" alt="User Interface" width="400" style="height:auto;" />
+</p>
+
 ## 🚀 Quick Start
 
 ### Using Docker (Recommended)
