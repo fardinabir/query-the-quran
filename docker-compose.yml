@@ -28,10 +28,8 @@ services:
     build: .
     container_name: quran-app
     # Remove direct port exposure since we'll access through the proxy
-    # ports:
-    #   - "3000:3000"
-    expose:
-      - "3000"
+    ports:
+      - "3000:3000"
     environment:
       - ELASTICSEARCH_NODE=http://elasticsearch:9200
       - ELASTICSEARCH_INDEX=quran_verses

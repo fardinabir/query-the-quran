@@ -1,7 +1,5 @@
 # Query The Quran
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![License](https://img.shields.io/badge/license-MIT-green.svg)
 
 A modern, high-performance web application that enables users to search and explore Quranic verses in multiple languages (Arabic, English, and Bangla) using Elasticsearch's powerful search capabilities. This application provides an intuitive interface for studying the Quran with advanced search features and multilingual support.
 
@@ -40,7 +38,7 @@ The easiest way to get started is using Docker Compose:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/fardinabir/query-the-quran.git
 cd query-the-quran
 
 # Start the application stack
@@ -48,9 +46,8 @@ docker-compose up -d
 ```
 
 Access the application:
-- User Interface: `http://localhost`
-- Admin Interface: `http://localhost/admin` (default credentials: admin/admin123)
-- Nginx Proxy Manager: `http://localhost:81` (default credentials: admin@example.com/changeme)
+- User Interface: `http://localhost:3000`
+- Admin Interface: `http://localhost:3000/admin` (default credentials: admin/admin123)
 
 ## 🏗️ Architecture
 
