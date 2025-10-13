@@ -48,6 +48,6 @@ initializeIndex()
         });
     })
     .catch(error => {
-        console.error('Failed to initialize OpenSearch:', error);
+        console.error('Failed to initialize ElasticSearch:', error);
         process.exit(1);
     });
