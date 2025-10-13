@@ -9,14 +9,7 @@ const client = new Client({
     maxRetries: 5,
     requestTimeout: 60000,
     // Add compression for better performance
-    compression: 'gzip',
-    // Enable keep-alive for connection reuse
-    agent: {
-        keepAlive: true,
-        keepAliveMsecs: 1000,
-        maxSockets: 256,
-        maxFreeSockets: 256
-    }
+    compression: 'gzip'
 });
 
 // Optimized mapping for Quran verses with appropriate analyzers
@@ -171,9 +164,9 @@ async function initializeIndex() {
         await waitForElasticsearchReady();
         
         // Check if index exists
-        const { body: indexExists } = await client.indices.exists({
+        const indexExists = await client.indices.exists({
             index: indexName
-        }).catch(() => ({ body: false }));
+        });
         
         if (!indexExists) {
             console.log(`📝 Creating index: ${indexName}`);
@@ -192,7 +185,7 @@ async function initializeIndex() {
             
             // Optionally verify mapping is up to date
             try {
-                const { body: currentMapping } = await client.indices.getMapping({
+                const currentMapping = await client.indices.getMapping({
                     index: indexName
                 });
                 console.log(`📋 Current mapping verified for index: ${indexName}`);
@@ -202,7 +195,7 @@ async function initializeIndex() {
         }
         
         // Final health check
-        const { body: finalHealth } = await client.cluster.health({ 
+        const finalHealth = await client.cluster.health({ 
             wait_for_status: 'yellow', 
             timeout: '10s' 
         });
